@@ -111,7 +111,7 @@ type Config struct {
 	Revision string
 
 	// ConsulConfig is the configuration to connect with Consul Agent
-	ConsulConfig *consul.ConsulConfig
+	ConsulConfig *consul.AgentConfig
 }
 
 func (c *Config) Copy() *Config {
