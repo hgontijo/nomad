@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/nomad/nomad/structs/config"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -539,7 +540,7 @@ func parseAtlas(result **AtlasConfig, list *ast.ObjectList) error {
 	return nil
 }
 
-func parseConsulConfig(result **ConsulConfig, list *ast.ObjectList) error {
+func parseConsulConfig(result **config.ConsulConfig, list *ast.ObjectList) error {
 	list = list.Elem()
 	if len(list.Items) > 1 {
 		return fmt.Errorf("only one 'consul' block allowed")
@@ -574,7 +575,7 @@ func parseConsulConfig(result **ConsulConfig, list *ast.ObjectList) error {
 		return err
 	}
 
-	var consulConfig ConsulConfig
+	var consulConfig config.ConsulConfig
 	if err := mapstructure.WeakDecode(m, &consulConfig); err != nil {
 		return err
 	}
