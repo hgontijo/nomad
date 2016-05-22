@@ -115,7 +115,8 @@ type Client struct {
 	// allocUpdates stores allocations that need to be synced to the server.
 	allocUpdates chan *structs.Allocation
 
-	consulService *consul.ConsulService
+	// consulSyncer advertises this Nomad Agent with Consul
+	consulSyncer *consul.Syncer
 
 	shutdown     bool
 	shutdownCh   chan struct{}
@@ -1175,7 +1176,7 @@ func (c *Client) addAlloc(alloc *structs.Allocation) error {
 // setupConsulClient creates a ConsulService
 func (c *Client) setupConsulClient() error {
 	cs, err := consul.NewConsulService(c.config.ConsulAgentConfig, c.logger)
-	c.consulService = cs
+	c.consulSyncer = cs
 	return err
 }
 
@@ -1217,7 +1218,7 @@ func (c *Client) syncConsul() {
 				}
 			}
 
-			if err := c.consulService.KeepServices(services); err != nil {
+			if err := c.consulSyncer.KeepServices(services); err != nil {
 				c.logger.Printf("[DEBUG] client: error removing services from non-running tasks: %v", err)
 			}
 		case <-c.shutdownCh:
