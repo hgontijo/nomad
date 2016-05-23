@@ -162,8 +162,8 @@ type UniversalExecutor struct {
 	cgLock  sync.Mutex
 
 	consulSyncer *consul.Syncer
-	consulCtx     *ConsulContext
-	logger        *log.Logger
+	consulCtx    *ConsulContext
+	logger       *log.Logger
 }
 
 // NewExecutor returns an Executor
