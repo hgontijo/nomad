@@ -562,6 +562,7 @@ func parseConsulConfig(result **config.ConsulConfig, list *ast.ObjectList) error
 		"server_auto_join",
 		"server_service_name",
 		"ssl",
+		"timeout",
 		"token",
 		"verify_ssl",
 	}
