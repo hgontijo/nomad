@@ -138,13 +138,14 @@ type Client struct {
 }
 
 // NewClient is used to create a new client from the given configuration
-func NewClient(cfg *config.Config) (*Client, error) {
+func NewClient(cfg *config.Config, consulSyncer *consul.Syncer) (*Client, error) {
 	// Create a logger
 	logger := log.New(cfg.LogOutput, "", log.LstdFlags)
 
 	// Create the client
 	c := &Client{
 		config:       cfg,
+		consulSyncer: consulSyncer,
 		start:        time.Now(),
 		connPool:     nomad.NewPool(cfg.LogOutput, clientRPCCache, clientMaxStreams, nil),
 		logger:       logger,
@@ -211,9 +212,6 @@ func NewClient(cfg *config.Config) (*Client, error) {
 
 	// Start maintenance task for servers
 	go c.rpcProxy.Run()
-
-	// Start the Consul sync
-	go c.runClientConsulSyncer()
 
 	return c, nil
 }
@@ -1138,17 +1136,10 @@ func (c *Client) addAlloc(alloc *structs.Allocation) error {
 
 // setupConsulSyncer creates a consul.Syncer
 func (c *Client) setupConsulSyncer() error {
-	cs, err := consul.NewSyncer(c.config.ConsulConfig, c.logger)
-	if err != nil {
-		return err
-	}
-
-	c.consulSyncer = cs
-
-	// Callback handler used to periodically poll Consul in the event
-	// there are no Nomad Servers available and the Nomad Agent is in a
-	// bootstrap situation.
-	fn := func() {
+	// Callback handler used to periodically poll Consul to look up the
+	// Nomad Servers in Consul in the event the heartbeat deadline has
+	// been exceeded and this Agent is in a bootstrap situation.
+	bootstrapFn := func() {
 		now := time.Now()
 		c.configLock.RLock()
 		if now.Before(c.backupServerDeadline) {
@@ -1174,6 +1165,7 @@ func (c *Client) setupConsulSyncer() error {
 		}
 		c.rpcProxy.SetBackupServers(serverAddrs)
 	}
+	c.consulSyncer.AddPeriodicHandler("Nomad Client Fallback Server Handler", bootstrapFn)
 
 	const handlerName = "Nomad Client Fallback Server Handler"
 	c.consulSyncer.AddPeriodicHandler(handlerName, fn)
