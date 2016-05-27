@@ -167,7 +167,7 @@ func (c *EvalStatusCommand) Run(args []string) int {
 		}
 
 		if eval.BlockedEval != "" {
-			c.Ui.Output(fmt.Sprintf("\nEvaluation %q waiting for additional capacity to place remainder",
+			c.Ui.Output(fmt.Sprintf("Evaluation %q waiting for additional capacity to place remainder",
 				limit(eval.BlockedEval, length)))
 		}
 	}
